@@ -27,7 +27,7 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: 'generate-default.html',
-            dest: target,
+            target: target,
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
@@ -49,7 +49,7 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: 'generate-default-nostyle.html',
-            dest: target,
+            target: target,
             css: stylesheets,
             width: 1300,
             height: 900
@@ -62,8 +62,10 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: 'generate-default.html',
-            timeout: 1,
-            dest: target,
+            penthouse: {
+              timeout: 1
+            },
+            target: target,
             width: 1300,
             height: 900
         }, err => {
@@ -78,8 +80,10 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: 'error.html',
-            timeout: 1,
-            dest: target,
+            penthouse: {
+              timeout: 1
+            },
+            target: target,
             width: 1300,
             height: 900
         }, err => {
@@ -95,7 +99,7 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: 'generate-default-querystring.html',
-            dest: target,
+            target: target,
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
@@ -108,7 +112,7 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: '403-css.html',
-            dest: target,
+            target: target,
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
@@ -121,24 +125,24 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: '404-css.html',
-            dest: target,
+            target: target,
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
     });
 
-    it('should generate multi-dimension critical-path CSS', done => {
+    it.only('should generate multi-dimension critical-path CSS', done => {
         const expected = read('expected/generate-adaptive.css', 'utf8');
         const target = path.resolve('.adaptive.css');
 
         critical.generate({
             base: 'fixtures/',
             src: 'generate-adaptive.html',
-            dest: target,
-            dimensions: [{
+            target: target,
+            dimensions: [/*{
                 width: 100,
                 height: 70
-            }, {
+            }, */{
                 width: 1000,
                 height: 70
             }]
@@ -153,7 +157,7 @@ describe('Module - generate', () => {
             base: 'fixtures/',
             src: 'generate-default.html',
             minify: true,
-            dest: target,
+            target: target,
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
@@ -171,7 +175,7 @@ describe('Module - generate', () => {
                 'fixtures/styles/bootstrap.css'
             ],
             minify: true,
-            dest: target,
+            target: target,
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
@@ -187,7 +191,7 @@ describe('Module - generate', () => {
             css: [
                 'fixtures/styles/image-relative.css'
             ],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900,
             inlineImages: true
@@ -204,7 +208,7 @@ describe('Module - generate', () => {
             css: [
                 'fixtures/styles/image-relative.css'
             ],
-            dest: target,
+            target: target,
             destFolder: 'folder/',
             width: 1300,
             height: 900,
@@ -222,7 +226,7 @@ describe('Module - generate', () => {
             css: [
                 'fixtures/styles/image-relative.css'
             ],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900,
             inlineImages: false
@@ -236,7 +240,7 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: 'folder/subfolder/generate-image-absolute.html',
-            dest: target,
+            target: target,
             width: 1300,
             height: 900,
             inlineImages: false
@@ -268,7 +272,7 @@ describe('Module - generate', () => {
             css: [
                 'fixtures/styles/image-relative.css'
             ],
-            dest: target,
+            target: target,
             destFolder: '.',
             width: 1300,
             height: 900,
@@ -286,7 +290,7 @@ describe('Module - generate', () => {
             css: [
                 'fixtures/styles/image-absolute.css'
             ],
-            dest: target,
+            target: target,
             destFolder: '.',
             width: 1300,
             height: 900,
@@ -304,7 +308,7 @@ describe('Module - generate', () => {
             css: [
                 'fixtures/styles/image-big.css'
             ],
-            dest: target,
+            target: target,
             destFolder: '.',
             width: 1300,
             height: 900,
@@ -322,7 +326,7 @@ describe('Module - generate', () => {
             css: [
                 'fixtures/styles/image-relative.css'
             ],
-            dest: target,
+            target: target,
             destFolder: '.',
             width: 1300,
             height: 900,
@@ -340,7 +344,7 @@ describe('Module - generate', () => {
             css: [
                 'fixtures/styles/some/path/image.css'
             ],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900,
             inlineImages: true
@@ -357,7 +361,7 @@ describe('Module - generate', () => {
             css: [
                 'fixtures/styles/path-prefix.css'
             ],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900,
             pathPrefix: ''
@@ -374,7 +378,7 @@ describe('Module - generate', () => {
             css: [
                 'fixtures/styles/path-prefix.css'
             ],
-            dest: target,
+            target: target,
             destFolder: '.',
             width: 1300,
             height: 900
@@ -389,7 +393,7 @@ describe('Module - generate', () => {
             base: 'fixtures/',
             src: 'generateInline.html',
             destFolder: '.',
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(path.join('fixtures', target), expected, done));
     });
@@ -402,7 +406,7 @@ describe('Module - generate', () => {
             base: 'fixtures/',
             src: 'generateInline.html',
             destFolder: '.',
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(path.join('fixtures', target), expected, done));
     });
@@ -416,7 +420,7 @@ describe('Module - generate', () => {
             src: 'generateInline.html',
             destFolder: '.',
             minify: true,
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(path.join('fixtures', target), expected, done));
     });
@@ -458,7 +462,7 @@ describe('Module - generate', () => {
             src: 'generateInline-external.html',
             inlineImages: false,
             minify: true,
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(target, expected, done));
     });
@@ -473,7 +477,7 @@ describe('Module - generate', () => {
             inlineImages: false,
             minify: true,
             extract: true,
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(target, expected, done));
     });
@@ -486,7 +490,7 @@ describe('Module - generate', () => {
             base: 'fixtures/',
             minify: true,
             src: 'generateInline-svg.html',
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(target, expected, done));
     });
@@ -500,7 +504,7 @@ describe('Module - generate', () => {
             minify: true,
             extract: true,
             src: 'generateInline.html',
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(target, expected, done));
     });
@@ -514,7 +518,7 @@ describe('Module - generate', () => {
             minify: true,
             extract: true,
             html: read('fixtures/generateInline.html'),
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(target, expected, done));
     });
@@ -526,7 +530,7 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: 'generate-default.html',
-            dest: target,
+            target: target,
             ignore: ['@media', '.header', /jumbotron/],
 
             width: 1300,
@@ -541,7 +545,7 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: 'generate-default.html',
-            dest: target,
+            target: target,
             ignore: [],
             minify: true,
             width: 1300,
@@ -556,7 +560,7 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: 'generate-ignorefont.html',
-            dest: target,
+            target: target,
             ignore: ['@font-face'],
             minify: true,
             width: 1300,
@@ -572,7 +576,7 @@ describe('Module - generate', () => {
             base: 'fixtures/',
             src: 'include.html',
             include: [/someRule/],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
@@ -606,7 +610,7 @@ describe('Module - generate', () => {
                 /^\.hero-deck.*$/,
                 /^\.deck.*$/,
                 /^\.search-box.*$/],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
@@ -620,7 +624,7 @@ describe('Module - generate', () => {
             base: 'fixtures/',
             src: 'generate-default-nostyle.html',
             css: ['fixtures/styles/bootstrap.css'],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
@@ -634,7 +638,7 @@ describe('Module - generate', () => {
             base: 'fixtures/',
             src: 'generate-default-nostyle.html',
             css: ['fixtures/styles/bootstrap.css'],
-            dest: target,
+            target: target,
             inline: true,
             width: 1300,
             height: 900
@@ -649,7 +653,7 @@ describe('Module - generate', () => {
             base: 'fixtures/',
             src: 'issue-314.html',
             css: ['fixtures/styles/bootstrap.css'],
-            dest: target,
+            target: target,
             inline: true,
             width: 1300,
             height: 900
@@ -664,7 +668,7 @@ describe('Module - generate', () => {
             base: 'fixtures/',
             src: 'issue-314.html',
             css: ['fixtures/styles/bootstrap.css'],
-            dest: target,
+            target: target,
             inline: false,
             width: 1300,
             height: 900
@@ -702,7 +706,7 @@ describe('Module - generate (remote)', () => {
 
         critical.generate({
             src: `http://localhost:${this.port}/generate-default.html`,
-            dest: target,
+            target: target,
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
@@ -715,7 +719,7 @@ describe('Module - generate (remote)', () => {
         critical.generate({
             base: 'fixtures/',
             src: `http://localhost:${this.port}/generate-adaptive.html`,
-            dest: target,
+            target: target,
             dimensions: [{
                 width: 100,
                 height: 70
@@ -734,7 +738,7 @@ describe('Module - generate (remote)', () => {
             base: 'fixtures/',
             src: `http://localhost:${this.port}/generate-default.html`,
             minify: true,
-            dest: target,
+            target: target,
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
@@ -752,7 +756,7 @@ describe('Module - generate (remote)', () => {
                 'fixtures/styles/bootstrap.css'
             ],
             minify: true,
-            dest: target,
+            target: target,
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
@@ -764,7 +768,7 @@ describe('Module - generate (remote)', () => {
 
         critical.generate({
             src: `http://localhost:${this.port}/generate-image.html`,
-            dest: target,
+            target: target,
             width: 1300,
             height: 900,
             inlineImages: true
@@ -780,7 +784,7 @@ describe('Module - generate (remote)', () => {
             css: [
                 'fixtures/styles/image-relative.css'
             ],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900,
             inlineImages: true,
@@ -798,7 +802,7 @@ describe('Module - generate (remote)', () => {
             css: [
                 'fixtures/styles/image-absolute.css'
             ],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900,
             inlineImages: true
@@ -815,7 +819,7 @@ describe('Module - generate (remote)', () => {
             css: [
                 'fixtures/styles/image-absolute.css'
             ],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900,
             inlineImages: true,
@@ -833,7 +837,7 @@ describe('Module - generate (remote)', () => {
             css: [
                 'fixtures/styles/image-big.css'
             ],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900,
             inlineImages: true
@@ -850,7 +854,7 @@ describe('Module - generate (remote)', () => {
             css: [
                 'fixtures/styles/image-relative.css'
             ],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900,
             inlineImages: false
@@ -867,7 +871,7 @@ describe('Module - generate (remote)', () => {
             css: [
                 'fixtures/styles/some/path/image.css'
             ],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900,
             inlineImages: true
@@ -884,7 +888,7 @@ describe('Module - generate (remote)', () => {
             css: [
                 'fixtures/styles/path-prefix.css'
             ],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900,
             // Empty string most likely to candidate for failure if change in code results in checking option lazily,
@@ -902,7 +906,7 @@ describe('Module - generate (remote)', () => {
             css: [
                 'fixtures/styles/path-prefix.css'
             ],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
@@ -915,7 +919,7 @@ describe('Module - generate (remote)', () => {
         critical.generate({
             base: 'fixtures/',
             src: `http://localhost:${this.port}/generateInline.html`,
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(target, expected, done));
     });
@@ -927,7 +931,7 @@ describe('Module - generate (remote)', () => {
         critical.generate({
             base: 'fixtures/',
             src: `http://localhost:${this.port}/generateInline.html`,
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(target, expected, done));
     });
@@ -940,7 +944,7 @@ describe('Module - generate (remote)', () => {
             base: 'fixtures/',
             src: `http://localhost:${this.port}/generateInline.html`,
             minify: true,
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(target, expected, done));
     });
@@ -982,7 +986,7 @@ describe('Module - generate (remote)', () => {
             src: `http://localhost:${this.port}/generateInline-external2.html`,
             inlineImages: false,
             minify: true,
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(target, expected, done));
     });
@@ -997,7 +1001,7 @@ describe('Module - generate (remote)', () => {
             inlineImages: false,
             minify: true,
             extract: true,
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(target, expected, done));
     });
@@ -1010,7 +1014,7 @@ describe('Module - generate (remote)', () => {
             base: 'fixtures/',
             minify: true,
             src: `http://localhost:${this.port}/generateInline-svg.html`,
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(target, expected, done));
     });
@@ -1024,7 +1028,7 @@ describe('Module - generate (remote)', () => {
             minify: true,
             extract: true,
             src: `http://localhost:${this.port}/generateInline.html`,
-            dest: target,
+            target: target,
             inline: true
         }, assertCritical(target, expected, done));
     });
@@ -1036,7 +1040,7 @@ describe('Module - generate (remote)', () => {
         critical.generate({
             base: 'fixtures/',
             src: `http://localhost:${this.port}/generate-default.html`,
-            dest: target,
+            target: target,
             ignore: ['@media', '.header', /jumbotron/],
 
             width: 1300,
@@ -1051,7 +1055,7 @@ describe('Module - generate (remote)', () => {
         critical.generate({
             base: 'fixtures/',
             src: `http://localhost:${this.port}/generate-default.html`,
-            dest: target,
+            target: target,
             ignore: [],
             minify: true,
             width: 1300,
@@ -1066,7 +1070,7 @@ describe('Module - generate (remote)', () => {
         critical.generate({
             base: 'fixtures/',
             src: `http://localhost:${this.port}/generate-ignorefont.html`,
-            dest: target,
+            target: target,
             ignore: ['@font-face'],
             minify: true,
             width: 1300,
@@ -1082,7 +1086,7 @@ describe('Module - generate (remote)', () => {
             base: 'fixtures/',
             src: `http://localhost:${this.port}/include.html`,
             include: [/someRule/],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
@@ -1096,7 +1100,7 @@ describe('Module - generate (remote)', () => {
             base: 'fixtures/',
             src: `http://localhost:${this.port}/generate-default-useragent.html`,
             include: [/someRule/],
-            dest: target,
+            target: target,
             width: 1300,
             height: 900,
             userAgent: 'custom agent'
