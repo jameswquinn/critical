@@ -1,12 +1,15 @@
+const path = require('path');
 const CleanCSS = require('clean-css');
 const invokeMap = require('lodash/invokeMap');
 const postcss = require('postcss');
 const discard = require('postcss-discard');
+const imageInliner = require('postcss-image-inliner');
 const penthouse = require('penthouse');
 const inlineCritical = require('inline-critical');
-const {mapAsync} = require('./array');
+const parseCssUrls = require('css-url-parser');
+const {mapAsync, reduceAsync} = require('./array');
 const {NoCssError} = require('./errors');
-const {getDocument, getDocumentFromSource, token} = require('./file');
+const {getDocument, getDocumentFromSource, token, getAssetPaths} = require('./file');
 
 /**
  * Returns a string of combined and deduped css rules.
@@ -45,7 +48,7 @@ function combineCss(cssArray) {
  * @returns {function}
  */
 async function callPenthouse(document, options) {
-  const {dimensions, width, height, userAgent, user, pass, penthouse:params = {}} = options;
+  const {dimensions, width, height, userAgent, user, pass, penthouse: params = {}} = options;
   const {customPageHeaders = {}} = params;
   const {css: cssString, url} = document;
   const config = {...params, cssString, url};
@@ -59,18 +62,7 @@ async function callPenthouse(document, options) {
     config.customPageHeaders = {...customPageHeaders, Authorization: 'Basic ' + token(user, pass)};
   }
 
-  const browserPromise = puppeteer.launch({
-    ignoreHTTPSErrors: true,
-    args: ['--disable-setuid-sandbox', '--no-sandbox'],
-    // not required to specify here, but saves Penthouse some work if you will
-    // re-use the same viewport for most penthouse calls.
-    defaultViewport: {
-      width: 1300,
-      height: 900
-    }
-  })
-
-  const styles = await mapAsync(sizes, async ({width, height}) => console.log({...config, width, height}) || await penthouse({...config, width, height}).then(res => console.log(res) || res));
+  const styles = await mapAsync(sizes, async ({width, height}) => await penthouse({...config, width, height}));
 
   return combineCss(styles);
 }
@@ -83,12 +75,11 @@ async function callPenthouse(document, options) {
  */
 async function create(options = {}) {
   const cleanCSS = new CleanCSS();
-  const {src, html, inline, ignore, minify} = options;
-
+  const {src, html, inline, ignore, minify, inlineImages, maxImageFileSize, postcss: postProcess = [], strict, assetPaths = []} = options;
   const document = src ? await getDocument(src, options) : await getDocumentFromSource(html, options);
 
   if (!document.css || !document.css.toString()) {
-    if (options.strict) {
+    if (strict) {
       throw new NoCssError()
     }
 
@@ -101,7 +92,29 @@ async function create(options = {}) {
   let criticalCSS = await callPenthouse(document, options);
 
   if (ignore) {
-    criticalCSS = postcss([discard(ignore)]).process(criticalCSS, { from: undefined }).css;
+    postProcess.push(discard(ignore));
+  }
+
+  if (inlineImages) {
+    const referencedAssets = parseCssUrls(criticalCSS);
+    const referencedAssetPaths = referencedAssets.reduce((res, file) => [...res, path.dirname(file)], []);
+    const searchpaths = [];
+    await reduceAsync([...new Set(referencedAssetPaths)], async (res, file) => {
+      const paths = await getAssetPaths(document, file, options);
+      return [new Set([...res, ...paths])];
+    }, assetPaths);
+
+
+    const inlineOptions = {
+      assetPaths: searchpaths,
+      maxFileSize: maxImageFileSize
+    };
+
+    postProcess.push(imageInliner(inlineOptions));
+  }
+
+  if (postProcess.length) {
+    criticalCSS = await postcss(postProcess).process(criticalCSS, {from: undefined}).then(contents => contents.css);
   }
 
   if (minify) {

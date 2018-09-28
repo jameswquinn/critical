@@ -162,6 +162,8 @@ async function glob(pattern, {base} = {}) {
 function rebaseAssets(css, from, to) {
   let rebased = css.toString();
 
+  debug('Rebase assets', {from, to});
+
   if (/\/$/.test(to)) {
     to = to + 'temp.html';
   }
@@ -364,21 +366,22 @@ function getRemoteStylesheetPath(fileObj, documentObj, filename) {
  * @returns {Promise<*>}
  */
 async function getStylesheetPath(document, file, options = {}) {
-  let {base} = options;
+  let {base, css} = options;
 
   // check remote
   if (file.remote) {
     return getRemoteStylesheetPath(file.urlObj, document.urlObj);
   }
 
-  // generate path relative to docuent if stylesheet is referenced relative
+  // Generate path relative to document if stylesheet is referenced relative
+  //
   if (isRelative(file.path)) {
     return path.join(path.dirname(document.path), file.path);
   }
 
-  if (base) {
+  if (base && path.resolve(file.path).includes(path.resolve(base))) {
     base = path.resolve(base);
-    return `/${path.relative(base, file.path)}`;
+    return `/${path.relative(path.resolve(base), path.resolve(file.path))}`;
   }
 
   // try to compute path based on document link tags with same name
@@ -530,17 +533,16 @@ async function vinylize({filepath, html}, options = {}) {
  * @returns {Promise<Vinyl>}
  */
 async function getStylesheet(document, filepath, options = {}) {
-  const {rebase = {}} = options;
-
+  const {rebase = {}, css, strict} = options;
+  const originalPath = filepath;
   const exists = await fileExists(filepath, options);
 
   if (!exists) {
     const searchPaths = await getAssetPaths(document, filepath, options);
     try {
       filepath = await resolve(filepath, searchPaths, options);
-
     } catch (error) {
-      if (!isRemote(filepath) || options.strict) {
+      if (!isRemote(filepath) || strict) {
         throw error;
       }
 
@@ -548,10 +550,23 @@ async function getStylesheet(document, filepath, options = {}) {
     }
   }
 
+  // Create absolute file paths for local files passed via css option
+  // to prevent document relative stylesheet paths if they are not relative specified
+  if (!isVinyl(filepath) && !isRemote(filepath) && css) {
+    filepath = path.resolve(filepath);
+  }
+
   const file = await vinylize({filepath});
+
+  // restore original path for local files referenced from document and not from options
+  if (!isRemote(originalPath) && !css) {
+    file.path = originalPath;
+  }
 
   // get stylesheet path. Keeps stylesheet url if it differs from document url
   const stylepath = await getStylesheetPath(document, file, options);
+
+  // console.log({file: file.path, css: stylepath, html: document.path});
 
   // if the stylesheet path is an url we need to rebase all assets to that url
   if (isRemote(stylepath)) {
@@ -576,7 +591,7 @@ async function getCss(document, options = {}) {
   let stylesheets = [];
 
   if (css) {
-    const files = await glob(css, options);
+    let files = await glob(css, options);
     stylesheets = await mapAsync(files, async file => getStylesheet(document, file, options));
   } else {
     stylesheets = await mapAsync(document.stylesheets, async file => getStylesheet(document, file, options));
@@ -654,6 +669,7 @@ module.exports = {
   vinylize,
   getStylesheetHrefs,
   getAssets,
+  getAssetPaths,
   getDocumentPath,
   getStylesheetPath,
   getStylesheet,

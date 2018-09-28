@@ -131,7 +131,7 @@ describe('Module - generate', () => {
         }, assertCritical(target, expected, done));
     });
 
-    it.only('should generate multi-dimension critical-path CSS', done => {
+    it('should generate multi-dimension critical-path CSS', done => {
         const expected = read('expected/generate-adaptive.css', 'utf8');
         const target = path.resolve('.adaptive.css');
 
@@ -139,10 +139,10 @@ describe('Module - generate', () => {
             base: 'fixtures/',
             src: 'generate-adaptive.html',
             target: target,
-            dimensions: [/*{
+            dimensions: [{
                 width: 100,
                 height: 70
-            }, */{
+            }, {
                 width: 1000,
                 height: 70
             }]
@@ -209,7 +209,6 @@ describe('Module - generate', () => {
                 'fixtures/styles/image-relative.css'
             ],
             target: target,
-            destFolder: 'folder/',
             width: 1300,
             height: 900,
             inlineImages: true
@@ -233,7 +232,7 @@ describe('Module - generate', () => {
         }, assertCritical(target, expected, done));
     });
 
-    it('should rewrite relative images for html outside root with css file', done => {
+    it.only('should rewrite relative images for html outside root with css file', done => {
         const expected = read('expected/generate-image-relative-subfolder.css');
         const target = path.resolve('fixtures/folder/subfolder/.image-relative-subfolder.css');
 
@@ -254,7 +253,7 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: 'folder/subfolder/generate-image-absolute.html',
-            destFolder: 'folder/subfolder',
+            // destFolder: 'folder/subfolder',
             // Dest: target,
             width: 1300,
             height: 900,
@@ -273,7 +272,7 @@ describe('Module - generate', () => {
                 'fixtures/styles/image-relative.css'
             ],
             target: target,
-            destFolder: '.',
+            // destFolder: '.',
             width: 1300,
             height: 900,
             inlineImages: false
@@ -291,7 +290,7 @@ describe('Module - generate', () => {
                 'fixtures/styles/image-absolute.css'
             ],
             target: target,
-            destFolder: '.',
+            // destFolder: '.',
             width: 1300,
             height: 900,
             inlineImages: true
@@ -309,7 +308,7 @@ describe('Module - generate', () => {
                 'fixtures/styles/image-big.css'
             ],
             target: target,
-            destFolder: '.',
+            // destFolder: '.',
             width: 1300,
             height: 900,
             inlineImages: true
@@ -327,7 +326,7 @@ describe('Module - generate', () => {
                 'fixtures/styles/image-relative.css'
             ],
             target: target,
-            destFolder: '.',
+            // destFolder: '.',
             width: 1300,
             height: 900,
             inlineImages: false
@@ -379,7 +378,7 @@ describe('Module - generate', () => {
                 'fixtures/styles/path-prefix.css'
             ],
             target: target,
-            destFolder: '.',
+            // destFolder: '.',
             width: 1300,
             height: 900
         }, assertCritical(target, expected, done));
@@ -392,7 +391,7 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: 'generateInline.html',
-            destFolder: '.',
+            // destFolder: '.',
             target: target,
             inline: true
         }, assertCritical(path.join('fixtures', target), expected, done));
@@ -405,7 +404,7 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: 'generateInline.html',
-            destFolder: '.',
+            // destFolder: '.',
             target: target,
             inline: true
         }, assertCritical(path.join('fixtures', target), expected, done));
@@ -418,7 +417,7 @@ describe('Module - generate', () => {
         critical.generate({
             base: 'fixtures/',
             src: 'generateInline.html',
-            destFolder: '.',
+            // destFolder: '.',
             minify: true,
             target: target,
             inline: true
