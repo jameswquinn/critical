@@ -19,6 +19,7 @@ const schema = Joi.object().keys({
   extract: Joi.boolean().default(false),
   inlineImages: Joi.boolean().default(false),
   postcss: Joi.array(),
+  ignore: Joi.array(),
   width: Joi.number().default(DEFAULT.width),
   height: Joi.number().default(DEFAULT.height),
   minify: Joi.boolean().default(DEFAULT.minify),
@@ -43,16 +44,17 @@ const schema = Joi.object().keys({
   target: [Joi.string(), Joi.object().keys({
     css: Joi.string(),
     html: Joi.string()
-  })]
+  })],
+  assetPaths: Joi.array().items(Joi.string()),
+  userAgent: Joi.string(),
 }).label('options').xor('html','src');
 
 
 
 
 function getOptions(options = {}) {
-  const {error, value} = Joi.validate(options, schema, {
-  });
-  const {inline, dimensions, penthouse = {}, target} = value || {};
+  const {error, value} = Joi.validate(options, schema);
+  const {inline, dimensions, penthouse = {}, target, ignore} = value || {};
 
   if (error) {
     const {details = []} = error;
@@ -74,6 +76,7 @@ function getOptions(options = {}) {
     value.target = {[key]: target};
   }
 
+  // set inline options
   value.inline = Boolean(inline) && {
     minify: value.minify,
     extract: value.extract || false,
@@ -88,6 +91,15 @@ function getOptions(options = {}) {
     maxEmbeddedBase64Length: value.maxImageFileSize,
       ...penthouse
   };
+
+
+
+  if (ignore && Array.isArray(ignore)) {
+    value.ignore = {
+      atrule: ignore,
+      rule: ignore,
+    };
+  }
 
   return value;
 }

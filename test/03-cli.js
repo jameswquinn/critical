@@ -36,7 +36,7 @@ describe('CLI', () => {
             });
         });
 
-        it('should work well with the html file passed as an option', function (done) {
+        it.only('should work well with the html file passed as an option', function (done) {
             const cp = execFile('node', [
                 path.join(__dirname, '../', this.pkg.bin.critical),
                 'fixtures/generate-default.html',
@@ -103,9 +103,9 @@ describe('CLI', () => {
             });
         });
 
-        it('should add the correct image path to critical css', function (done) {
+        it('should add an absolute image path to critical css if we can not locate the document and have an absolute css path ', function (done) {
             const cmd = 'cat fixtures/folder/generate-image.html | node ' + path.join(__dirname, '../', this.pkg.bin.critical) + ' -c fixtures/styles/image-relative.css --base fixtures --width 1300 --height 900';
-            const expected = fs.readFileSync(path.join(__dirname, 'expected/generate-image-relative.css'), 'utf8');
+            const expected = fs.readFileSync(path.join(__dirname, 'expected/generate-image-absolute.css'), 'utf8');
 
             exec(cmd, (error, stdout) => {
                 assert.isNull(error);
@@ -114,14 +114,13 @@ describe('CLI', () => {
             });
         });
 
-        it('should show warning on piped file without relative links and use "/"', function (done) {
+        it('should use an absolute image path on piped file without relative links', function (done) {
             const cmd = 'cat fixtures/folder/subfolder/generate-image-absolute.html | node ' + path.join(__dirname, '../', this.pkg.bin.critical) + ' --base fixtures --width 1300 --height 900';
             const expected = fs.readFileSync(path.join(__dirname, 'expected/generate-image-absolute.css'), 'utf8');
 
             exec(cmd, (error, stdout, stderr) => {
                 assert.isNull(error);
                 assert.strictEqual(nn(stdout.toString('utf8')), nn(expected));
-                assert.include(stderr.toString('utf8'), 'Missing html source path. Consider \'folder\' option.');
                 done();
             });
         });
@@ -243,10 +242,6 @@ describe('CLI', () => {
                 '300',
                 '-h',
                 '400',
-                '-f',
-                'folder',
-                '-p',
-                'pathPrefix',
                 '-e',
                 '-i'
             ];
@@ -256,8 +251,6 @@ describe('CLI', () => {
             assert.strictEqual(this.mockOpts.width, 300);
             assert.strictEqual(this.mockOpts.height, 400);
             assert.strictEqual(this.mockOpts.css, 'css');
-            assert.strictEqual(this.mockOpts.pathPrefix, 'pathPrefix');
-            assert.strictEqual(this.mockOpts.folder, 'folder');
             assert.strictEqual(this.mockOpts.inline, true);
             assert.strictEqual(this.mockOpts.extract, true);
         });
@@ -277,10 +270,6 @@ describe('CLI', () => {
                 'ignore',
                 '--include',
                 '/include/',
-                '--folder',
-                'folder',
-                '--pathPrefix',
-                'pathPrefix',
                 '--inline',
                 '--extract',
                 '--inlineImages',
@@ -298,8 +287,6 @@ describe('CLI', () => {
             assert.strictEqual(this.mockOpts.height, 400);
             assert.strictEqual(this.mockOpts.css, 'css');
             assert.strictEqual(this.mockOpts.extract, true);
-            assert.strictEqual(this.mockOpts.folder, 'folder');
-            assert.strictEqual(this.mockOpts.pathPrefix, 'pathPrefix');
             assert.isArray(this.mockOpts.ignore);
             assert.include(this.mockOpts.ignore, 'ignore');
             assert.isArray(this.mockOpts.include);

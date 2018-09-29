@@ -19,12 +19,10 @@ process.on('unhandledRejection', (reason, promise) => {
  * @return {Promise}
  */
 async function generate(params, cb) {
-  const options = getOptions(params);
-  const {target = {}} = options;
-
-
-
   try {
+    const options = getOptions(params);
+    const {target = {}} = options;
+
     const {css, html} = await create(options);
 
     // Store generated css

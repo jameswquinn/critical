@@ -148,7 +148,7 @@ test('Vinylize local file', async () => {
   const contents = await Promise.all(files.map(f => fs.readFile(f)));
   const result = await Promise.all(files.map(filepath => vinylize({filepath})));
 
-  expect.assertions(files.length * 5 + 1);
+  expect.hasAssertions();
   expect(result.length).toBe(files.length);
 
   for (let i=0; i< result.length; i++) {
@@ -248,7 +248,7 @@ test('Compute document base (with base option)', async () => {
     return data;
   });
 
-  expect.assertions(files.length + 1);
+  expect.hasAssertions();
   for (const file of files) {
     const filepath = await getDocumentPath(file.vinyl, {base: path.join(__dirname, 'fixtures')});
     expect(path.dirname(filepath)).toBe(file.expected);
@@ -261,7 +261,7 @@ test('Compute document base (without base option)', async () => {
   const vinyls = await Promise.all([
     {filepath: `http://localhost:${port}/folder`, expected: '/'},
     {filepath: `http://localhost:${port}/folder/`, expected: '/folder'},
-    {filepath: path.join(__dirname, 'fixtures/folder/subfolder/head.html'), expected: '/test/fixtures/folder/subfolder', noBase: true},
+    {filepath: path.join(__dirname, 'fixtures/folder/subfolder/head.html'), expected: '/folder/subfolder'},
     {filepath: path.join(__dirname, 'fixtures/folder/generate-default.html'), expected: '/folder'},
     {filepath: path.join(__dirname, 'fixtures/head.html'), expected: '/'},
     {filepath: path.join(__dirname, 'fixtures/folder/subfolder/relative.html'), expected: '/folder/subfolder'},
@@ -273,7 +273,7 @@ test('Compute document base (without base option)', async () => {
     return data;
   });
 
-  expect.assertions(files.length + 1);
+  expect.hasAssertions();
   for (const file of files) {
     const filepath = await getDocumentPath(file.vinyl);
     expect(path.dirname(filepath)).toBe(file.expected);
@@ -287,14 +287,14 @@ test('Get document', async () => {
   const tests = [
     {filepath: `http://localhost:${port}/folder`, expected: '/folder'},
     {filepath: `http://localhost:${port}/folder/`, expected: '/folder/index.html'},
-    {filepath: path.join(__dirname, 'fixtures/folder/subfolder/head.html'), expected: '/test/fixtures/folder/subfolder/head.html', noBase: true},
+    {filepath: path.join(__dirname, 'fixtures/folder/subfolder/head.html'), expected: '/folder/subfolder/head.html'},
     {filepath: path.join(__dirname, 'fixtures/folder/generate-default.html'), expected: '/folder/generate-default.html'},
     {filepath: path.join(__dirname, 'fixtures/head.html'), expected: '/head.html'},
     {filepath: path.join(__dirname, 'fixtures/folder/subfolder/relative.html'), expected: '/folder/subfolder/relative.html'},
     {filepath: path.join(__dirname, 'fixtures/folder/relative.html'), expected: '/folder/relative.html'},
   ];
 
-  expect.assertions(tests.length + 1);
+  expect.hasAssertions();
   for (const testdata of tests) {
     const {filepath, expected} = testdata;
     const file = await getDocument(filepath);
@@ -451,9 +451,9 @@ test('Get styles (without path)', async () => {
         `http://127.0.0.1:${port}/images/critical.png`,
       ]},
     {filepath: path.join(__dirname, 'fixtures/styles/image-relative.css'), expected: [
-        `'../images/critical.png'`,
-        `'../images/critical.png'`,
-        `'../images/critical.png'`,
+        `'/images/critical.png'`,
+        `'/images/critical.png'`,
+        `'/images/critical.png'`,
       ]},
   ];
 

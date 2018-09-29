@@ -38,11 +38,15 @@ test('Generate critical-path CSS', async () => {
   const css = read('expected/generate-default.css');
   const html = read('fixtures/generate-default.html');
 
-  const result =  await create({
-    src:  `http://localhost:${port}/generate-default.html`,
-    minify: true,
-  });
 
-  expect(result.css).toBe(css);
-  expect(result.html).toBe(html);
+  try {
+    const result =  await create({
+      src:  `http://localhost:${port}/generate-default.html`,
+      minify: true,
+    });
+    expect(result.css).toBe(css);
+    expect(result.html).toBe(html);
+  } catch (error) {
+    expect(error).toBe(undefined);
+  }
 });

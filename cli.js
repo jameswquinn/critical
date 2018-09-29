@@ -68,18 +68,17 @@ const minimistOpts = {
       type: 'string',
       alias: 'I'
     },
-    // extract: {
-    //   type: 'boolean',
-    //   alias: 'e'
-    // },
+    extract: {
+      type: 'boolean',
+      alias: 'e'
+    },
     // pathPrefix: {
     //   type: 'string',
     //   alias: 'p'
     // },
-    // inlineImages: {
-    //   type: 'boolean',
-    //   alias: 'ii'
-    // },
+    inlineImages: {
+      type: 'boolean',
+    },
     user: {
       type: 'string'
     },

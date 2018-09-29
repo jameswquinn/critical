@@ -25,4 +25,6 @@ rebase: {from: ..., to: ...} (uses postcss-url)
 
 ----------------------
 
+#### Drop filter-css in favor of postcss-discard 
 
+https://github.com/bezoerb/postcss-discard/

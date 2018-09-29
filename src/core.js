@@ -1,10 +1,14 @@
+const {EOL} = require('os');
 const path = require('path');
+const chalk = require('chalk');
 const CleanCSS = require('clean-css');
 const invokeMap = require('lodash/invokeMap');
 const postcss = require('postcss');
 const discard = require('postcss-discard');
+const prettier = require("prettier");
 const imageInliner = require('postcss-image-inliner');
 const penthouse = require('penthouse');
+const { PAGE_UNLOADED_DURING_EXECUTION_ERROR_MESSAGE } = require('penthouse/lib/core');
 const inlineCritical = require('inline-critical');
 const parseCssUrls = require('css-url-parser');
 const {mapAsync, reduceAsync} = require('./array');
@@ -89,7 +93,20 @@ async function create(options = {}) {
     }
   }
 
-  let criticalCSS = await callPenthouse(document, options);
+  let criticalCSS;
+  try {
+     criticalCSS = await callPenthouse(document, options);
+  } catch (error) {
+    if (error.message === PAGE_UNLOADED_DURING_EXECUTION_ERROR_MESSAGE) {
+      process.stderr.write(chalk.yellow(PAGE_UNLOADED_DURING_EXECUTION_ERROR_MESSAGE) + EOL);
+      return {
+        css: '',
+        html: document.contents.toString(),
+      }
+    }
+
+    throw error;
+  }
 
   if (ignore) {
     postProcess.push(discard(ignore));
@@ -119,6 +136,8 @@ async function create(options = {}) {
 
   if (minify) {
     criticalCSS = cleanCSS.minify(criticalCSS).styles;
+  } else {
+    criticalCSS = prettier.format(criticalCSS, {parser: "css"});
   }
 
   // Inline
