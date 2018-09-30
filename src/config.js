@@ -1,7 +1,6 @@
 const Joi = require('joi');
 const {ConfigError} = require('./errors');
 
-
 const DEFAULT = {
   width: 1300,
   height: 900,
@@ -10,47 +9,51 @@ const DEFAULT = {
   minify: true,
 };
 
-const schema = Joi.object().keys({
-  html: Joi.string(),
-  src: Joi.string(),
-  css: [Joi.string(), Joi.array()],
-  base: Joi.string(),
-  strict: Joi.boolean().default(false),
-  extract: Joi.boolean().default(false),
-  inlineImages: Joi.boolean().default(false),
-  postcss: Joi.array(),
-  ignore: Joi.array(),
-  width: Joi.number().default(DEFAULT.width),
-  height: Joi.number().default(DEFAULT.height),
-  minify: Joi.boolean().default(DEFAULT.minify),
-  dimensions: Joi.array().items({width: Joi.number(), height: Joi.number()}),
-  inline: [Joi.boolean(), Joi.object().unknown(true)],
-  maxImageFileSize: Joi.number().default(DEFAULT.maxImageFileSize),
-  include: Joi.any().default([]),
-  penthouse: Joi.object().keys({
-    url: Joi.any().forbidden(),
-    css: Joi.any().forbidden(),
-    width: Joi.any().forbidden(),
-    height: Joi.any().forbidden(),
-    timeout: Joi.number().default(DEFAULT.timeout),
-    forceInclude: Joi.any(),
-    maxEmbeddedBase64Length: Joi.number(),
-  }).unknown(true),
-  rebase: Joi.object().keys({
-    from: Joi.string(),
-    to: Joi.string(),
-
-  }),
-  target: [Joi.string(), Joi.object().keys({
-    css: Joi.string(),
-    html: Joi.string()
-  })],
-  assetPaths: Joi.array().items(Joi.string()),
-  userAgent: Joi.string(),
-}).label('options').xor('html','src');
-
-
-
+const schema = Joi.object()
+  .keys({
+    html: Joi.string(),
+    src: Joi.string(),
+    css: [Joi.string(), Joi.array()],
+    base: Joi.string(),
+    strict: Joi.boolean().default(false),
+    extract: Joi.boolean().default(false),
+    inlineImages: Joi.boolean().default(false),
+    postcss: Joi.array(),
+    ignore: Joi.array(),
+    width: Joi.number().default(DEFAULT.width),
+    height: Joi.number().default(DEFAULT.height),
+    minify: Joi.boolean().default(DEFAULT.minify),
+    dimensions: Joi.array().items({width: Joi.number(), height: Joi.number()}),
+    inline: [Joi.boolean(), Joi.object().unknown(true)],
+    maxImageFileSize: Joi.number().default(DEFAULT.maxImageFileSize),
+    include: Joi.any().default([]),
+    penthouse: Joi.object()
+      .keys({
+        url: Joi.any().forbidden(),
+        css: Joi.any().forbidden(),
+        width: Joi.any().forbidden(),
+        height: Joi.any().forbidden(),
+        timeout: Joi.number().default(DEFAULT.timeout),
+        forceInclude: Joi.any(),
+        maxEmbeddedBase64Length: Joi.number(),
+      })
+      .unknown(true),
+    rebase: Joi.object().keys({
+      from: Joi.string(),
+      to: Joi.string(),
+    }),
+    target: [
+      Joi.string(),
+      Joi.object().keys({
+        css: Joi.string(),
+        html: Joi.string(),
+      }),
+    ],
+    assetPaths: Joi.array().items(Joi.string()),
+    userAgent: Joi.string(),
+  })
+  .label('options')
+  .xor('html', 'src');
 
 function getOptions(options = {}) {
   const {error, value} = Joi.validate(options, schema);
@@ -65,10 +68,12 @@ function getOptions(options = {}) {
   }
 
   if (!dimensions) {
-    value.dimensions = [{
-      width: options.width || DEFAULT.width,
-      height: options.height || DEFAULT.height,
-    }];
+    value.dimensions = [
+      {
+        width: options.width || DEFAULT.width,
+        height: options.height || DEFAULT.height,
+      },
+    ];
   }
 
   if (typeof target === 'string') {
@@ -76,7 +81,7 @@ function getOptions(options = {}) {
     value.target = {[key]: target};
   }
 
-  // set inline options
+  // Set inline options
   value.inline = Boolean(inline) && {
     minify: value.minify,
     extract: value.extract || false,
@@ -89,10 +94,8 @@ function getOptions(options = {}) {
     forceInclude: value.include,
     timeout: DEFAULT.timeout,
     maxEmbeddedBase64Length: value.maxImageFileSize,
-      ...penthouse
+    ...penthouse,
   };
-
-
 
   if (ignore && Array.isArray(ignore)) {
     value.ignore = {
@@ -104,8 +107,6 @@ function getOptions(options = {}) {
   return value;
 }
 
-
-
 module.exports = {
-  getOptions
+  getOptions,
 };

@@ -65,12 +65,12 @@
   "devDependencies": {
     "async": "^2.6.1",
     "chai": "^4.1.2",
+    "eslint-plugin-prettier": "^2.7.0",
     "finalhandler": "^1.1.0",
     "jest": "^23.6.0",
     "mocha": "5.2.0",
     "mockery": "^2.1.0",
     "normalize-newline": "^3.0.0",
-    "nsp": "^3.1.0",
     "read-package-json": "^2.0.12",
     "serve-static": "^1.13.1",
     "stream-array": "^1.1.2",
@@ -82,6 +82,7 @@
     "space": 2,
     "prettier": true,
     "ignores": [
+      "test",
       "lib"
     ],
     "rules": {}

@@ -5,9 +5,8 @@ const fs = require('fs-extra');
 const findUp = require('find-up');
 const globby = require('globby');
 const isGlob = require('is-glob');
-const postcss = require("postcss");
-const postcssUrl = require("postcss-url");
-const rebaser = require("postcss-assets-rebase");
+const postcss = require('postcss');
+const postcssUrl = require('postcss-url');
 const Vinyl = require('vinyl');
 const oust = require('oust');
 const got = require('got');
@@ -21,9 +20,7 @@ const {FileNotFoundError} = require('./errors');
 
 const BASE_WARNING = `${chalk.yellow('Warning:')} Missing base path. Consider 'base' option. https://goo.gl/PwvFVb`;
 
-
-const warn = (text) => process.stderr.write(chalk.yellow(`${text}${os.EOL}`));
-
+const warn = text => process.stderr.write(chalk.yellow(`${text}${os.EOL}`));
 
 /**
  * Fixup slashes in file paths for windows
@@ -58,9 +55,11 @@ function isRelative(href) {
  * @returns {string}
  */
 function isVinyl(file) {
-  return Vinyl.isVinyl(file) ||
+  return (
+    Vinyl.isVinyl(file) ||
     file instanceof Vinyl ||
-    (file && /function File\(/.test(file.constructor.toString()) && file.contents && file.path);
+    (file && /function File\(/.test(file.constructor.toString()) && file.contents && file.path)
+  );
 }
 
 /**
@@ -106,7 +105,7 @@ function joinPath(base, part) {
 }
 
 /**
- * resolve path
+ * Resolve path
  * @param filepath
  * @param paths
  * @param options
@@ -118,9 +117,9 @@ async function resolve(filepath, paths = [], options = {}) {
     return filepath;
   }
 
-  for (let ref of paths) {
+  for (const ref of paths) {
     const checkPath = joinPath(ref, filepath);
-    exists = await fileExists(checkPath);
+    exists = await fileExists(checkPath); /* eslint-disable-line no-await-in-loop */
     if (exists) {
       return checkPath;
     }
@@ -136,19 +135,23 @@ async function resolve(filepath, paths = [], options = {}) {
  * @returns {Promise<[string]>}
  */
 async function glob(pattern, {base} = {}) {
-  // evaluate globs based on base path
+  // Evaluate globs based on base path
   const patterns = Array.isArray(pattern) ? pattern : [pattern];
-  // prepend base if it's not empty & not remote
-  const prependBase = pattern => base && !isRemote(base) ? [path.join(base, pattern)] : [];
+  // Prepend base if it's not empty & not remote
+  const prependBase = pattern => (base && !isRemote(base) ? [path.join(base, pattern)] : []);
 
-  return await reduceAsync(patterns, async (files, pattern) => {
-    if (isGlob(pattern)) {
-      const result = await globby([...prependBase(pattern), pattern]);
-      return [...files, ...result];
-    }
+  return reduceAsync(
+    patterns,
+    async (files, pattern) => {
+      if (isGlob(pattern)) {
+        const result = await globby([...prependBase(pattern), pattern]);
+        return [...files, ...result];
+      }
 
-    return [...files, pattern];
-  }, []);
+      return [...files, pattern];
+    },
+    []
+  );
 }
 
 /**
@@ -166,30 +169,22 @@ function rebaseAssets(css, from, to, method = 'rebase') {
   debug('Rebase assets', {from, to});
 
   if (/\/$/.test(to)) {
-    to = to + 'temp.html';
+    to += 'temp.html';
   }
 
   if (/\/$/.test(from)) {
-    from = from + 'temp.css';
+    from += 'temp.css';
   }
-
 
   if (isRemote(from)) {
     const {pathname} = url.parse(from);
     from = pathname;
   }
 
-  if (false && isRemote(to)) {
-
-    // @todo Find a smarter solutions - JUST A QUICKFIX
-    const assets = parseCssUrls(css.toString()).map(asset => ({
-      search: asset,
-      replace: isRemote(asset) ? asset : url.resolve(to, asset),
-    }));
-
-    rebased = assets.reduce((res, {search, replace}) => res.replace(search, replace), css.toString());
-  } else if (from && to) {
-    rebased = postcss().use(postcssUrl({url: method})).process(css, {from, to}).css;
+  if ((from && to) || typeof method === 'function') {
+    rebased = postcss()
+      .use(postcssUrl({url: method}))
+      .process(css, {from, to}).css;
   }
 
   return Buffer.from(rebased);
@@ -299,7 +294,7 @@ function getAssets(file) {
 async function getDocumentPath(file, options = {}) {
   let {base} = options;
 
-  // check remote
+  // Check remote
   if (file.remote) {
     let {pathname} = file.urlObj;
     if (/\/$/.test(pathname)) {
@@ -309,25 +304,20 @@ async function getDocumentPath(file, options = {}) {
     return pathname;
   }
 
-  // if we don't have a file path and
+  // If we don't have a file path and
   if (!file.path) {
     return '';
   }
-
-
 
   if (base) {
     base = path.resolve(base);
     return `/${path.relative(base, file.path || base)}`;
   }
 
-
-
-  // check local and assume base path based on relative stylesheets
+  // Check local and assume base path based on relative stylesheets
   if (file.stylesheets) {
     const relativeRefs = file.stylesheets.filter(href => isRelative(href));
     const absoluteRefs = file.stylesheets.filter(href => path.isAbsolute(href));
-
 
     if (relativeRefs.length === 0 && absoluteRefs.length === 0) {
       process.stderr.write(BASE_WARNING);
@@ -340,14 +330,13 @@ async function getDocumentPath(file, options = {}) {
       const paths = await getAssetPaths(file, ref, options);
       try {
         const filepath = await resolve(ref, paths, options);
-        return `/${path.relative(filepath.replace(ref,''), file.path)}`;
+        return `/${path.relative(filepath.replace(ref, ''), file.path)}`;
       } catch (error) {
         process.stderr.write(BASE_WARNING);
 
         return `/${path.relative(process.cwd(), file.path)}`;
       }
     }
-
 
     const dots = relativeRefs.reduce((res, href) => {
       const match = /^(\.\.\/)+/.exec(href);
@@ -357,17 +346,15 @@ async function getDocumentPath(file, options = {}) {
 
     const tmpBase = path.resolve(path.dirname(file.path), dots);
 
-
     return `/${path.relative(tmpBase, file.path)}`;
   }
 
   return '';
 }
 
-
 function getRemoteStylesheetPath(fileObj, documentObj, filename) {
   let {hostname: styleHost, port: stylePort, pathname} = fileObj;
-  let {hostname: docHost, port: docPort} = documentObj || {};
+  const {hostname: docHost, port: docPort} = documentObj || {};
 
   if (filename) {
     pathname = path.join(path.dirname(pathname), path.basename(filename));
@@ -375,7 +362,7 @@ function getRemoteStylesheetPath(fileObj, documentObj, filename) {
   }
 
   if (`${styleHost}:${stylePort}` === `${docHost}:${docPort}`) {
-    return pathname
+    return pathname;
   }
 
   return url.format(fileObj);
@@ -389,9 +376,9 @@ function getRemoteStylesheetPath(fileObj, documentObj, filename) {
  * @returns {Promise<*>}
  */
 async function getStylesheetPath(document, file, options = {}) {
-  let {base, css} = options;
+  let {base} = options;
 
-  // check remote
+  // Check remote
   if (file.remote) {
     return getRemoteStylesheetPath(file.urlObj, document.urlObj);
   }
@@ -407,7 +394,7 @@ async function getStylesheetPath(document, file, options = {}) {
     return `/${path.relative(path.resolve(base), path.resolve(file.path))}`;
   }
 
-  // try to compute path based on document link tags with same name
+  // Try to compute path based on document link tags with same name
   const stylesheet = document.stylesheets.find(href => {
     const {pathname} = url.parse(href);
     const name = path.basename(pathname);
@@ -416,19 +403,23 @@ async function getStylesheetPath(document, file, options = {}) {
 
   if (stylesheet && isRelative(stylesheet) && document.path) {
     return path.join(path.dirname(document.path), stylesheet);
-  } else if (stylesheet && isRemote(stylesheet)) {
+  }
+  if (stylesheet && isRemote(stylesheet)) {
     return getRemoteStylesheetPath(url.parse(stylesheet), document.urlObj);
-  } else if (stylesheet) {
+  }
+  if (stylesheet) {
     return stylesheet;
   }
 
-  // try to find stylesheet path based on document link tags
-  const [unsafestylesheet] = document.stylesheets.sort((a) => isRemote(a) ? 1 : -1);
+  // Try to find stylesheet path based on document link tags
+  const [unsafestylesheet] = document.stylesheets.sort(a => (isRemote(a) ? 1 : -1));
   if (unsafestylesheet && isRelative(unsafestylesheet) && document.path) {
     return path.join(path.dirname(document.path), path.join(path.dirname(unsafestylesheet), path.basename(file.path)));
-  } else if (unsafestylesheet && isRemote(unsafestylesheet)) {
+  }
+  if (unsafestylesheet && isRemote(unsafestylesheet)) {
     return getRemoteStylesheetPath(url.parse(unsafestylesheet), document.urlObj, path.basename(file.path));
-  } else if (stylesheet) {
+  }
+  if (stylesheet) {
     return stylesheet;
   }
 
@@ -460,27 +451,28 @@ async function getAssetPaths(document, file, options = {}) {
     return [];
   }
 
-
-  // remove double dots in the middle
+  // Remove double dots in the middle
   const normalized = path.join(file);
-  // count directory hops
-  const hops = normalized.split('/').reduce((cnt, part) => (part === '..') ? cnt + 1 : cnt, 0);
-  // also findup first real dir path
+  // Count directory hops
+  const hops = normalized.split('/').reduce((cnt, part) => (part === '..' ? cnt + 1 : cnt), 0);
+  // Also findup first real dir path
   const [first] = normalized.split('/').filter(p => p && p !== '..');
 
   // Make a list of possible paths
-  const paths = [...new Set([
-    base,
-    url,
-    docpath && path.dirname(docpath),
-    ...assetPaths,
-    to,
-    from,
-    base && docpath && path.join(base, path.dirname(docpath)),
-    base && to && path.join(base, path.dirname(to)),
-    base && from && path.join(base, path.dirname(from)),
-    base && isRelative(file) && hops ? path.join(base, ...Array(hops).fill('tmpdir'), file) : '',
-  ])];
+  const paths = [
+    ...new Set([
+      base,
+      url,
+      docpath && path.dirname(docpath),
+      ...assetPaths,
+      to,
+      from,
+      base && docpath && path.join(base, path.dirname(docpath)),
+      base && to && path.join(base, path.dirname(to)),
+      base && from && path.join(base, path.dirname(from)),
+      base && isRelative(file) && hops ? path.join(base, ...new Array(hops).fill('tmpdir'), file) : '',
+    ]),
+  ];
 
   // Filter non existant paths
   const filtered = await filterAsync(paths, async f => {
@@ -488,28 +480,34 @@ async function getAssetPaths(document, file, options = {}) {
       return false;
     }
 
-    return await fileExists(f);
+    return fileExists(f);
   });
 
   // Findup first directory in search path and add to the list if available
-  const all = await reduceAsync([...new Set(filtered)], async (result, cwd) => {
-    const up = await findUp(first, {cwd});
-    if (up) {
-      const upDir = path.dirname(up);
+  const all = await reduceAsync(
+    [...new Set(filtered)],
+    async (result, cwd) => {
+      const up = await findUp(first, {cwd});
+      if (up) {
+        const upDir = path.dirname(up);
 
-      if (hops) {
-        // Add additional directories based on dirHops
-        const additional = path.relative(upDir, cwd).split('/').slice(0, hops);
-        return [...result, upDir, path.join(upDir, ...additional)];
-      } else {
+        if (hops) {
+          // Add additional directories based on dirHops
+          const additional = path
+            .relative(upDir, cwd)
+            .split('/')
+            .slice(0, hops);
+          return [...result, upDir, path.join(upDir, ...additional)];
+        }
         return [...result, upDir];
       }
-    }
 
-    return result;
-  }, filtered);
+      return result;
+    },
+    filtered
+  );
 
-  // return uniquq result
+  // Return uniquq result
   return [...new Set(all)];
 }
 
@@ -523,7 +521,7 @@ async function getAssetPaths(document, file, options = {}) {
  */
 async function vinylize({filepath, html}, options = {}) {
   const {rebase = {}} = options;
-  let file = new Vinyl();
+  const file = new Vinyl();
   file.cwd = '/';
   file.remote = false;
 
@@ -583,12 +581,12 @@ async function getStylesheet(document, filepath, options = {}) {
 
   const file = await vinylize({filepath}, options);
 
-  // restore original path for local files referenced from document and not from options
+  // Restore original path for local files referenced from document and not from options
   if (!isRemote(originalPath) && !css) {
     file.path = originalPath;
   }
 
-  // get stylesheet path. Keeps stylesheet url if it differs from document url
+  // Get stylesheet path. Keeps stylesheet url if it differs from document url
   const stylepath = await getStylesheetPath(document, file, options);
 
   // We can safely rebase assets if we have:
@@ -601,24 +599,29 @@ async function getStylesheet(document, filepath, options = {}) {
   if (from && to) {
     file.contents = rebaseAssets(file.contents, rebase.from, rebase.to);
 
-    // next rebase to the stylesheet url
+    // Next rebase to the stylesheet url
   } else if (isRemote(rebase.to || stylepath)) {
-    file.contents = rebaseAssets(file.contents, rebase.from || stylepath, rebase.to || stylepath, asset =>
-      isRemote(asset.originUrl) ? asset : url.resolve(rebase.to || stylepath, asset.relativePath)
+    file.contents = rebaseAssets(
+      file.contents,
+      rebase.from || stylepath,
+      rebase.to || stylepath,
+      asset => (isRemote(asset.originUrl) ? asset : url.resolve(rebase.to || stylepath, asset.relativePath))
     );
 
-    // use relative path to document (local)
+    // Use relative path to document (local)
   } else if (document.path) {
     file.contents = rebaseAssets(file.contents, rebase.from || stylepath, rebase.to || document.path);
-
   } else if (document.remote) {
     const {pathname} = document.urlObj;
     file.contents = rebaseAssets(file.contents, rebase.from || stylepath, rebase.to || pathname);
 
-    // make images absolute if we have an absolute positioned stylesheet
+    // Make images absolute if we have an absolute positioned stylesheet
   } else if (path.isAbsolute(stylepath)) {
-    file.contents = rebaseAssets(file.contents, rebase.from || stylepath, rebase.to || '/index.html', asset =>
-      asset.absolutePath
+    file.contents = rebaseAssets(
+      file.contents,
+      rebase.from || stylepath,
+      rebase.to || '/index.html',
+      asset => asset.absolutePath
     );
   } else {
     warn(`Not rebasing assets for ${originalPath}. Use "rebase" option`);
@@ -638,7 +641,7 @@ async function getCss(document, options = {}) {
   let stylesheets = [];
 
   if (css) {
-    let files = await glob(css, options);
+    const files = await glob(css, options);
     stylesheets = await mapAsync(files, async file => getStylesheet(document, file, options));
   } else {
     stylesheets = await mapAsync(document.stylesheets, async file => getStylesheet(document, file, options));
@@ -665,10 +668,10 @@ async function getDocument(filepath, options = {}) {
 
   const document = await vinylize({filepath}, options);
   document.stylesheets = await getStylesheetHrefs(document);
-  document.path = rebase.to || await getDocumentPath(document, options);
+  document.path = rebase.to || (await getDocumentPath(document, options));
   document.css = await getCss(document, options);
 
-  // store document as we need a file or url for penthouse
+  // Store document as we need a file or url for penthouse
   if (!document.url) {
     const file = tempy.file({extension: 'html'});
     await fs.writeFile(file, document.contents);
@@ -690,12 +693,11 @@ async function getDocumentFromSource(html, options = {}) {
   const document = await vinylize({html}, options);
 
   document.stylesheets = await getStylesheetHrefs(document);
-  document.path = rebase.to || await getDocumentPath(document, options);
+  document.path = rebase.to || (await getDocumentPath(document, options));
 
   document.css = await getCss(document, options);
 
-
-  // store document as we need a file or url for penthouse
+  // Store document as we need a file or url for penthouse
   if (!document.url) {
     const file = tempy.file({extension: 'html'});
     await fs.writeFile(file, document.contents);
@@ -703,10 +705,8 @@ async function getDocumentFromSource(html, options = {}) {
     document.url = `file://${file}`;
   }
 
-
-  return document
+  return document;
 }
-
 
 module.exports = {
   BASE_WARNING,
@@ -727,6 +727,3 @@ module.exports = {
   getDocumentFromSource,
   getCss,
 };
-
-
-

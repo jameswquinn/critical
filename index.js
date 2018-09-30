@@ -6,8 +6,8 @@ const replaceExtension = require('replace-ext');
 const {create} = require('./src/core');
 const {getOptions} = require('./src/config');
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.log('Unhandled Rejection at:', reason.stack || reason)
+process.on('unhandledRejection', reason => {
+  console.log('Unhandled Rejection at:', reason.stack || reason);
   // Recommended: send the information to sentry.io
   // or whatever crash reporting service you use
 });
@@ -51,7 +51,6 @@ async function generate(params, cb) {
   }
 }
 
-
 /**
  * Streams wrapper for critical
  *
@@ -60,7 +59,7 @@ async function generate(params, cb) {
  */
 function stream(options) {
   // Return stream
-  return through2.obj(function (file, enc, cb) {
+  return through2.obj(function(file, enc, cb) {
     if (file.isNull()) {
       return cb(null, file);
     }
@@ -75,11 +74,11 @@ function stream(options) {
       }
 
       // Rename file if not inlined
-      if (!options.inline) {
+      if (options.inline) {
+        file.contents = Buffer.from(html);
+      } else {
         file.path = replaceExtension(file.path, '.css');
         file.contents = Buffer.from(css);
-      } else {
-        file.contents = Buffer.from(html);
       }
 
       cb(err, file);
@@ -91,5 +90,5 @@ generate.stream = stream;
 
 module.exports = {
   generate,
-  stream
+  stream,
 };

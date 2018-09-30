@@ -5,7 +5,7 @@ class FileNotFoundError extends Error {
   constructor(file = '', paths = [], ...params) {
     const message = chalk.red(stripIndent`
       Error: File not found: ${file}
-             Searched in: ${paths.length ? paths.join(', ') : '-'}
+             Searched in: ${paths.length > 0 ? paths.join(', ') : '-'}
     `);
 
     super([message, ...params]);
@@ -37,7 +37,7 @@ class ConfigError extends Error {
     const message = chalk.red(stripIndents`
       ConfigError: ${msg}
     `);
-    // const message = chalk.red(stripIndents`Error - ${msg}`);
+    // Const message = chalk.red(stripIndents`Error - ${msg}`);
     //
     super([message, ...params]);
 
